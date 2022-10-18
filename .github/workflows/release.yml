@@ -18,6 +18,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: true
 
     - name: Registry Login
       uses: docker/login-action@v1
