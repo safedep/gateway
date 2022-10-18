@@ -27,7 +27,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build Container Image
-      run: docker build -t $REGISTRY/$IMAGE_NAME:latest .
+      run: cd services && docker build -t $REGISTRY/$IMAGE_NAME:latest .
 
     - name: Tag Latest Container Images
       run: docker tag $REGISTRY/$IMAGE_NAME:latest $REGISTRY/$IMAGE_NAME:snapshot
