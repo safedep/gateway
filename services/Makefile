@@ -65,6 +65,7 @@ server: oapi-codegen protoc-codegen
 	go build -o out/tap-server cmd/tap/tap.go
 	go build -o out/dcs-server cmd/dcs/dcs.go
 	go build -o out/pds-server cmd/pds/pds.go
+	go build -o out/confli cmd/confli/*.go
 
 .PHONY: test
 test:
