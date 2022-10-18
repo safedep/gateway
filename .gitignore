@@ -1,0 +1,5 @@
+docs/.cache
+/pki/*
+!/pki/EMPTY
+.env
+config/gateway-auth-basic.txt

@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "github.com/safedep/gateway/services/gen";
+
+import "validate/validate.proto";
+import "models.proto";
+
+message FindVulnerabilityByArtefactRequest {
+  Artefact artefact = 1 [(validate.rules).message.required = true];
+}
+
+message VulnerabilityList {
+  repeated VulnerabilityMeta vulnerabilities = 1 [(validate.rules).repeated = { ignore_empty: true }];
+}
+
+message EnrichedArtefact {
+
+}
+
+message GetVulnerabilityByIdRequest {
+  string id = 1;
+}
+
+service PolicyDataService {
+  /*
+    Find applicable vulerabilties by an Artefact meta information. Ecosystem, Group, Name is used
+    as composite lookup key for retrieving all vulnerabilities for a given artefact from the DB.
+    Subsequently perform an in-memory fuzzy match to select all the vulnerabilities matching the
+    requested artefact version.
+  */
+  rpc FindVulnerabilitiesByArtefact(FindVulnerabilityByArtefactRequest) returns(VulnerabilityList) {}
+
+  /*
+    Get all details of the vulnerabilty available in the data source. Primarily meant for frontend
+    requirement or for reporting purpose.
+  */
+  rpc GetVulnerabilityDetails(GetVulnerabilityByIdRequest) returns (VulnerabilityDetail) {}
+}
