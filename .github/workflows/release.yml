@@ -10,6 +10,7 @@ env:
 
 jobs:
   build:
+    if: "!contains(github.event.commits[0].message, '[norel]')"
     runs-on: ubuntu-latest
     permissions:
       contents: read
