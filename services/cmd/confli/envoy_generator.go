@@ -40,6 +40,14 @@ const (
 	tapPort     = "9001"
 )
 
+var (
+	// We must remove this header to leak gateway
+	// authentication credentials to external repository
+	requestHeadersToRemove = []string{
+		"authorization",
+	}
+)
+
 /**
 Envoy config references:
 
@@ -168,9 +176,10 @@ func envoyGenerateStaticListener(gateway *gen.GatewayConfiguration) (*envoy_list
 	}
 
 	vhosts := &envoy_route_v3.VirtualHost{
-		Name:    "catch_all_vhost",
-		Domains: []string{"*"},
-		Routes:  make([]*envoy_route_v3.Route, 0),
+		Name:                   "catch_all_vhost",
+		Domains:                []string{"*"},
+		Routes:                 make([]*envoy_route_v3.Route, 0),
+		RequestHeadersToRemove: requestHeadersToRemove,
 	}
 
 	for _, upstream := range gateway.Upstreams {
