@@ -350,7 +350,6 @@ func envoyGenerateStaticClusters(gateway *gen.GatewayConfiguration) ([]*envoy_cl
 				ClusterName: upstream.Name,
 				Endpoints:   make([]*envoy_endpoint_v3.LocalityLbEndpoints, 0),
 			},
-			TransportSocket: &envoy_core_v3.TransportSocket{},
 		}
 
 		endpoint := &envoy_endpoint_v3.LocalityLbEndpoints{
