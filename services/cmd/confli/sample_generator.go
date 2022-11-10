@@ -162,8 +162,14 @@ func (s *sampleConfigGenerator) addTapServiceConfig(config *config_api.GatewayCo
 
 func (s *sampleConfigGenerator) addDcsServiceConfig(config *config_api.GatewayConfiguration_ServiceConfig) {
 	config.Dcs = &config_api.DcsServiceConfig{
-		Active:               true,
-		MessagingAdapterName: messagingAdapterNameNATS,
+		Active:                  true,
+		MessagingAdapterName:    messagingAdapterNameNATS,
+		EnableOpensearchAdapter: true,
+		EnablePdpEventIndexing:  true,
+		OpensearchConfig: &config_api.OpensearchIntegrationConfig{
+			AuthType:  config_api.OpensearchIntegrationConfig_NONE,
+			Endpoints: []string{"http://opensearch:9200"},
+		},
 	}
 }
 

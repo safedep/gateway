@@ -1,6 +1,6 @@
 {
   "info": {
-    "id": "01GFJE3RN787D1NGW4VJEQ07HT",
+    "id": "01GHFRBTBT2M76VXDJMMP4XZW4",
     "name": "localhost",
     "domain": "localhost"
   },
@@ -131,7 +131,14 @@
     },
     "dcs": {
       "active": true,
-      "messagingAdapterName": "nats"
+      "messagingAdapterName": "nats",
+      "enableOpensearchAdapter": true,
+      "opensearchConfig": {
+        "endpoints": [
+          "http://opensearch:9200"
+        ]
+      },
+      "enablePdpEventIndexing": true
     }
   }
 }

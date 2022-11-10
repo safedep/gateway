@@ -3,8 +3,8 @@ package dcs
 import (
 	"log"
 
+	"github.com/safedep/gateway/services/gen"
 	"github.com/safedep/gateway/services/pkg/common/config"
-	common_models "github.com/safedep/gateway/services/pkg/common/models"
 )
 
 const (
@@ -14,15 +14,15 @@ const (
 
 type sbomCollector struct{}
 
-func sbomCollectorSubscription() eventSubscription[common_models.Artefact] {
+func sbomCollectorSubscription() eventSubscription[gen.TapArtefactRequestEvent] {
 	h := &sbomCollector{}
 	return h.subscription()
 }
 
-func (s *sbomCollector) subscription() eventSubscription[common_models.Artefact] {
+func (s *sbomCollector) subscription() eventSubscription[gen.TapArtefactRequestEvent] {
 	cfg := config.TapServiceConfig()
 
-	return eventSubscription[common_models.Artefact]{
+	return eventSubscription[gen.TapArtefactRequestEvent]{
 		name:    sbomCollectorName,
 		group:   sbomCollectorGroupName,
 		topic:   cfg.GetPublisherConfig().GetTopicNames().GetUpstreamRequest(),
@@ -30,13 +30,13 @@ func (s *sbomCollector) subscription() eventSubscription[common_models.Artefact]
 	}
 }
 
-func (s *sbomCollector) handler() eventSubscriptionHandler[common_models.Artefact] {
-	return func(event common_models.DomainEvent[common_models.Artefact]) error {
+func (s *sbomCollector) handler() eventSubscriptionHandler[gen.TapArtefactRequestEvent] {
+	return func(event *gen.TapArtefactRequestEvent) error {
 		return s.handle(event)
 	}
 }
 
-func (s *sbomCollector) handle(event common_models.DomainEvent[common_models.Artefact]) error {
+func (s *sbomCollector) handle(event *gen.TapArtefactRequestEvent) error {
 	log.Printf("SBOM collector - Handling artefact: %v", event.Data)
 	return nil
 }

@@ -114,9 +114,9 @@ func (s *authorizationService) checkInternal(ctx context.Context,
 		upstreamArtefact.Name, upstreamArtefact.Version,
 		httpReq.Method, httpReq.Path)
 
-	var policyRespose PolicyResponse
+	var policyResponse PolicyResponse
 	obs.Spanned(exCtx, "policyEvaluation", func(ctx context.Context) error {
-		policyRespose, err = s.policyEngine.Evaluate(ctx,
+		policyResponse, err = s.policyEngine.Evaluate(ctx,
 			NewPolicyInput(upstreamArtefact, upstream, identity, pdsResponse))
 		return err
 	})
@@ -126,9 +126,9 @@ func (s *authorizationService) checkInternal(ctx context.Context,
 		return &envoy_service_auth_v3.CheckResponse{}, err
 	}
 
-	gatewayDeny := !isMonitorMode() && !policyRespose.Allowed()
+	gatewayDeny := !isMonitorMode() && !policyResponse.Allowed()
 	s.publishDecisionEvent(exCtx, pdsResponse, !gatewayDeny,
-		isMonitorMode(), policyRespose, enrichmentErr)
+		isMonitorMode(), policyResponse, enrichmentErr)
 
 	if gatewayDeny {
 		logger.Infof("Policy denied upstream request")

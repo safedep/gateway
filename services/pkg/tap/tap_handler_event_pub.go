@@ -41,9 +41,7 @@ func (h *tapEventPublisher) HandleRequestHeaders(ctx context.Context,
 	}
 
 	topic := cfg.GetPublisherConfig().GetTopicNames().GetUpstreamRequest()
-
-	// TODO: Migrate this to event spec
-	event := common_models.NewArtefactRequestEvent(artefact)
+	event := common_models.NewArtefactRequestEvent(artefact, "tap")
 
 	err = h.messagingService.Publish(topic, event)
 	if err != nil {

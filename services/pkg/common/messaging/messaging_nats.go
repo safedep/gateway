@@ -11,10 +11,11 @@ import (
 )
 
 type natsMessagingService struct {
-	connection            *nats.Conn
-	jsonEncodedConnection *nats.EncodedConn
+	connection        *nats.Conn
+	encodedConnection *nats.EncodedConn
 }
 
+// Coupled with protobuf encoder so expects protobuf serializable messages
 func NewNatsMessagingService(cfg *config_api.MessagingAdapter) (MessagingService, error) {
 	certs := nats.ClientCert(os.Getenv("SERVICE_TLS_CERT"), os.Getenv("SERVICE_TLS_KEY"))
 	rootCA := nats.RootCAs(os.Getenv("SERVICE_TLS_ROOT_CA"))
@@ -42,19 +43,19 @@ func NewNatsMessagingService(cfg *config_api.MessagingAdapter) (MessagingService
 
 	log.Printf("NATS server connection initialized with RTT=%s", rtt)
 
-	jsonEncodedConn, err := nats.NewEncodedConn(conn, nats.JSON_ENCODER)
+	encodedConn, err := nats.NewEncodedConn(conn, nats.JSON_ENCODER)
 	if err != nil {
 		return &natsMessagingService{}, err
 	}
 
 	return &natsMessagingService{connection: conn,
-		jsonEncodedConnection: jsonEncodedConn}, nil
+		encodedConnection: encodedConn}, nil
 }
 
 func (svc *natsMessagingService) QueueSubscribe(topic string, group string, handler func(msg interface{})) (MessagingQueueSubscription, error) {
-	return svc.jsonEncodedConnection.QueueSubscribe(topic, group, handler)
+	return svc.encodedConnection.QueueSubscribe(topic, group, handler)
 }
 
 func (svc *natsMessagingService) Publish(topic string, msg interface{}) error {
-	return svc.jsonEncodedConnection.Publish(topic, msg)
+	return svc.encodedConnection.Publish(topic, msg)
 }

@@ -1,15 +1,15 @@
 package dcs
 
 import (
+	"log"
 	"sync"
 
 	"github.com/safedep/gateway/services/pkg/common/logger"
 	"github.com/safedep/gateway/services/pkg/common/messaging"
-	common_models "github.com/safedep/gateway/services/pkg/common/models"
 	"github.com/safedep/gateway/services/pkg/common/utils"
 )
 
-type eventSubscriptionHandler[T any] func(common_models.DomainEvent[T]) error
+type eventSubscriptionHandler[T any] func(*T) error
 
 type eventSubscription[T any] struct {
 	name         string
@@ -25,13 +25,14 @@ var dispatcherWg sync.WaitGroup
 func registerSubscriber[T any](msgService messaging.MessagingService,
 	subscriber eventSubscription[T]) (messaging.MessagingQueueSubscription, error) {
 
-	logger.Infof("Registering disaptcher name:%s topic:%s group:%s",
+	logger.Infof("Registering dispatcher name:%s topic:%s group:%s",
 		subscriber.name, subscriber.topic, subscriber.group)
 
 	sub, err := msgService.QueueSubscribe(subscriber.topic, subscriber.group, func(msg interface{}) {
-		var event common_models.DomainEvent[T]
+		var event T
 		if err := utils.MapStruct(msg, &event); err == nil {
-			subscriber.handler(event)
+			log.Printf("Received: Msg: %v Event: %v", msg, event)
+			subscriber.handler(&event)
 		} else {
 			logger.Infof("Error creating a domain event of type T from event msg: %v", err)
 		}
@@ -39,9 +40,10 @@ func registerSubscriber[T any](msgService messaging.MessagingService,
 
 	if err != nil {
 		logger.Errorf("Error registering queue subscriber: %v", err)
+	} else {
+		dispatcherWg.Add(1)
 	}
 
-	dispatcherWg.Add(1)
 	return sub, err
 }
 
