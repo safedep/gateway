@@ -1,7 +1,6 @@
 package dcs
 
 import (
-	"log"
 	"sync"
 
 	"github.com/safedep/gateway/services/pkg/common/logger"
@@ -31,7 +30,6 @@ func registerSubscriber[T any](msgService messaging.MessagingService,
 	sub, err := msgService.QueueSubscribe(subscriber.topic, subscriber.group, func(msg interface{}) {
 		var event T
 		if err := utils.MapStruct(msg, &event); err == nil {
-			log.Printf("Received: Msg: %v Event: %v", msg, event)
 			subscriber.handler(&event)
 		} else {
 			logger.Infof("Error creating a domain event of type T from event msg: %v", err)

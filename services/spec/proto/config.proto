@@ -217,7 +217,9 @@ message DcsServiceConfig {
 
   bool enable_opensearch_adapter = 5;
   OpensearchIntegrationConfig opensearch_config = 6;
+
   bool enable_pdp_event_indexing = 7;
+  string pdp_event_index_name = 8;
 }
 
 message GatewayConfiguration {

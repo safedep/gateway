@@ -166,6 +166,7 @@ func (s *sampleConfigGenerator) addDcsServiceConfig(config *config_api.GatewayCo
 		MessagingAdapterName:    messagingAdapterNameNATS,
 		EnableOpensearchAdapter: true,
 		EnablePdpEventIndexing:  true,
+		PdpEventIndexName:       "pdp-events",
 		OpensearchConfig: &config_api.OpensearchIntegrationConfig{
 			AuthType:  config_api.OpensearchIntegrationConfig_NONE,
 			Endpoints: []string{"http://opensearch:9200"},
