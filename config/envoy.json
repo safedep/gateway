@@ -1,31 +1,31 @@
 {
   "node": {
-    "id": "01GFJE3RN787D1NGW4VJEQ07HT--01GFN3R14TMD6BVHFHCZ9Q594H",
+    "id": "01GHZD1RHTK6BP62B8VN2G491M--01GHZD2V1785JH0Q3CENCZFVB6",
     "cluster": "localhost",
     "metadata": {
         "domain": "localhost"
       }
   },
-  "staticResources": {
+  "static_resources": {
     "listeners": [
       {
         "address": {
-          "socketAddress": {
+          "socket_address": {
             "address": "0.0.0.0",
-            "portValue": 10000
+            "port_value": 10000
           }
         },
-        "filterChains": [
+        "filter_chains": [
           {
             "filters": [
               {
                 "name": "envoy.filters.network.http_connection_manager",
-                "typedConfig": {
+                "typed_config": {
                   "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
-                  "statPrefix": "ingress_http",
-                  "routeConfig": {
+                  "stat_prefix": "ingress_http",
+                  "route_config": {
                     "name": "local_route",
-                    "virtualHosts": [
+                    "virtual_hosts": [
                       {
                         "name": "catch_all_vhost",
                         "domains": [
@@ -38,8 +38,8 @@
                             },
                             "route": {
                               "cluster": "maven-central",
-                              "prefixRewrite": "/maven2",
-                              "hostRewriteLiteral": "repo.maven.apache.org",
+                              "prefix_rewrite": "/maven2",
+                              "host_rewrite_literal": "repo.maven.apache.org",
                               "timeout": "0s"
                             }
                           },
@@ -49,8 +49,8 @@
                             },
                             "route": {
                               "cluster": "gradle-plugins",
-                              "prefixRewrite": "/m2",
-                              "hostRewriteLiteral": "plugins.gradle.org",
+                              "prefix_rewrite": "/m2",
+                              "host_rewrite_literal": "plugins.gradle.org",
                               "timeout": "0s"
                             }
                           },
@@ -60,61 +60,64 @@
                             },
                             "route": {
                               "cluster": "pypi_org",
-                              "prefixRewrite": "/pypi",
-                              "hostRewriteLiteral": "pypi.org",
+                              "prefix_rewrite": "/pypi",
+                              "host_rewrite_literal": "pypi.org",
                               "timeout": "0s"
                             }
                           }
+                        ],
+                        "request_headers_to_remove": [
+                          "authorization"
                         ]
                       }
                     ]
                   },
-                  "httpFilters": [
+                  "http_filters": [
                     {
                       "name": "envoy.filters.http.ext_proc",
-                      "typedConfig": {
+                      "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3.ExternalProcessor",
-                        "grpcService": {
-                          "envoyGrpc": {
-                            "clusterName": "ext-proc-tap"
+                        "grpc_service": {
+                          "envoy_grpc": {
+                            "cluster_name": "ext-proc-tap"
                           }
                         },
-                        "failureModeAllow": true,
-                        "processingMode": {
-                          "requestHeaderMode": "SEND",
-                          "responseHeaderMode": "SEND",
-                          "requestTrailerMode": "SKIP",
-                          "responseTrailerMode": "SKIP"
+                        "failure_mode_allow": true,
+                        "processing_mode": {
+                          "request_header_mode": "SEND",
+                          "response_header_mode": "SEND",
+                          "request_trailer_mode": "SKIP",
+                          "response_trailer_mode": "SKIP"
                         },
-                        "asyncMode": true
+                        "async_mode": true
                       }
                     },
                     {
                       "name": "envoy.filters.http.ext_authz",
-                      "typedConfig": {
+                      "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz",
-                        "grpcService": {
-                          "envoyGrpc": {
-                            "clusterName": "ext-authz-pdp"
+                        "grpc_service": {
+                          "envoy_grpc": {
+                            "cluster_name": "ext-authz-pdp"
                           }
                         },
-                        "transportApiVersion": "V3",
-                        "withRequestBody": {
-                          "maxRequestBytes": 8192,
-                          "allowPartialMessage": true,
-                          "packAsBytes": true
+                        "transport_api_version": "V3",
+                        "with_request_body": {
+                          "max_request_bytes": 8192,
+                          "allow_partial_message": true,
+                          "pack_as_bytes": true
                         },
-                        "includePeerCertificate": true
+                        "include_peer_certificate": true
                       }
                     },
                     {
                       "name": "envoy.filters.http.router"
                     }
                   ],
-                  "accessLog": [
+                  "access_log": [
                     {
                       "name": "envoy.access_loggers.stdout",
-                      "typedConfig": {
+                      "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog"
                       }
                     }
@@ -130,17 +133,17 @@
       {
         "name": "maven-central",
         "type": "LOGICAL_DNS",
-        "loadAssignment": {
-          "clusterName": "maven-central",
+        "load_assignment": {
+          "cluster_name": "maven-central",
           "endpoints": [
             {
-              "lbEndpoints": [
+              "lb_endpoints": [
                 {
                   "endpoint": {
                     "address": {
-                      "socketAddress": {
+                      "socket_address": {
                         "address": "repo.maven.apache.org",
-                        "portValue": 443
+                        "port_value": 443
                       }
                     }
                   }
@@ -149,10 +152,10 @@
             }
           ]
         },
-        "dnsLookupFamily": "V4_ONLY",
-        "transportSocket": {
+        "dns_lookup_family": "V4_ONLY",
+        "transport_socket": {
           "name": "envoy.transport_sockets.tls",
-          "typedConfig": {
+          "typed_config": {
             "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
             "sni": "repo.maven.apache.org"
           }
@@ -161,17 +164,17 @@
       {
         "name": "gradle-plugins",
         "type": "LOGICAL_DNS",
-        "loadAssignment": {
-          "clusterName": "gradle-plugins",
+        "load_assignment": {
+          "cluster_name": "gradle-plugins",
           "endpoints": [
             {
-              "lbEndpoints": [
+              "lb_endpoints": [
                 {
                   "endpoint": {
                     "address": {
-                      "socketAddress": {
+                      "socket_address": {
                         "address": "plugins.gradle.org",
-                        "portValue": 443
+                        "port_value": 443
                       }
                     }
                   }
@@ -180,10 +183,10 @@
             }
           ]
         },
-        "dnsLookupFamily": "V4_ONLY",
-        "transportSocket": {
+        "dns_lookup_family": "V4_ONLY",
+        "transport_socket": {
           "name": "envoy.transport_sockets.tls",
-          "typedConfig": {
+          "typed_config": {
             "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
             "sni": "plugins.gradle.org"
           }
@@ -192,17 +195,17 @@
       {
         "name": "pypi_org",
         "type": "LOGICAL_DNS",
-        "loadAssignment": {
-          "clusterName": "pypi_org",
+        "load_assignment": {
+          "cluster_name": "pypi_org",
           "endpoints": [
             {
-              "lbEndpoints": [
+              "lb_endpoints": [
                 {
                   "endpoint": {
                     "address": {
-                      "socketAddress": {
+                      "socket_address": {
                         "address": "pypi.org",
-                        "portValue": 443
+                        "port_value": 443
                       }
                     }
                   }
@@ -211,10 +214,10 @@
             }
           ]
         },
-        "dnsLookupFamily": "V4_ONLY",
-        "transportSocket": {
+        "dns_lookup_family": "V4_ONLY",
+        "transport_socket": {
           "name": "envoy.transport_sockets.tls",
-          "typedConfig": {
+          "typed_config": {
             "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
             "sni": "pypi.org"
           }
@@ -223,17 +226,17 @@
       {
         "name": "ext-authz-pdp",
         "type": "LOGICAL_DNS",
-        "loadAssignment": {
-          "clusterName": "ext-authz-pdp",
+        "load_assignment": {
+          "cluster_name": "ext-authz-pdp",
           "endpoints": [
             {
-              "lbEndpoints": [
+              "lb_endpoints": [
                 {
                   "endpoint": {
                     "address": {
-                      "socketAddress": {
+                      "socket_address": {
                         "address": "pdp",
-                        "portValue": 9000
+                        "port_value": 9000
                       }
                     }
                   }
@@ -242,32 +245,32 @@
             }
           ]
         },
-        "typedExtensionProtocolOptions": {
+        "typed_extension_protocol_options": {
           "envoy.extensions.upstreams.http.v3.HttpProtocolOptions": {
             "@type": "type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions",
-            "explicitHttpConfig": {
-              "http2ProtocolOptions": {
+            "explicit_http_config": {
+              "http2_protocol_options": {
 
               }
             }
           }
         },
-        "dnsLookupFamily": "V4_ONLY"
+        "dns_lookup_family": "V4_ONLY"
       },
       {
         "name": "ext-proc-tap",
         "type": "LOGICAL_DNS",
-        "loadAssignment": {
-          "clusterName": "ext-proc-tap",
+        "load_assignment": {
+          "cluster_name": "ext-proc-tap",
           "endpoints": [
             {
-              "lbEndpoints": [
+              "lb_endpoints": [
                 {
                   "endpoint": {
                     "address": {
-                      "socketAddress": {
+                      "socket_address": {
                         "address": "tap",
-                        "portValue": 9001
+                        "port_value": 9001
                       }
                     }
                   }
@@ -276,17 +279,17 @@
             }
           ]
         },
-        "typedExtensionProtocolOptions": {
+        "typed_extension_protocol_options": {
           "envoy.extensions.upstreams.http.v3.HttpProtocolOptions": {
             "@type": "type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions",
-            "explicitHttpConfig": {
-              "http2ProtocolOptions": {
+            "explicit_http_config": {
+              "http2_protocol_options": {
 
               }
             }
           }
         },
-        "dnsLookupFamily": "V4_ONLY"
+        "dns_lookup_family": "V4_ONLY"
       }
     ]
   }

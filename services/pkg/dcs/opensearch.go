@@ -1,10 +1,8 @@
 package dcs
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -17,6 +15,8 @@ import (
 	"github.com/safedep/gateway/services/gen"
 	"github.com/safedep/gateway/services/pkg/common/config"
 	"github.com/safedep/gateway/services/pkg/common/logger"
+	"github.com/safedep/gateway/services/pkg/common/utils"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -29,7 +29,7 @@ type opensearchIndexer struct {
 	shardedNames sync.Map
 }
 
-func opensearchPdpEventIndexerSubscription() eventSubscription[gen.PolicyEvaluationEvent] {
+func opensearchPdpEventIndexerSubscription() eventSubscription[*gen.PolicyEvaluationEvent] {
 	h := opensearchIndexer{}
 
 	client, err := h.buildOpenSearchClient()
@@ -41,22 +41,27 @@ func opensearchPdpEventIndexerSubscription() eventSubscription[gen.PolicyEvaluat
 	return h.pdpEventSubscription()
 }
 
-func (s *opensearchIndexer) pdpEventSubscription() eventSubscription[gen.PolicyEvaluationEvent] {
+func (s *opensearchIndexer) pdpEventSubscription() eventSubscription[*gen.PolicyEvaluationEvent] {
 	err := s.initOpenSearchIndex(config.DcsServiceConfig().GetPdpEventIndexName())
 	if err != nil {
 		panic(err)
 	}
 
 	cfg := config.PdpServiceConfig()
-	return eventSubscription[gen.PolicyEvaluationEvent]{
-		name:    pdpEventIndexerName,
-		group:   pdpEventIndexerGroup,
-		topic:   cfg.GetPublisherConfig().GetTopicNames().GetPolicyAudit(),
+	return eventSubscription[*gen.PolicyEvaluationEvent]{
+		name:  pdpEventIndexerName,
+		group: pdpEventIndexerGroup,
+		topic: cfg.GetPublisherConfig().GetTopicNames().GetPolicyAudit(),
+		decoder: func(b []byte) (*gen.PolicyEvaluationEvent, error) {
+			var event gen.PolicyEvaluationEvent
+			err := proto.Unmarshal(b, &event)
+			return &event, err
+		},
 		handler: s.pdpEventHandler(),
 	}
 }
 
-func (s *opensearchIndexer) pdpEventHandler() eventSubscriptionHandler[gen.PolicyEvaluationEvent] {
+func (s *opensearchIndexer) pdpEventHandler() eventSubscriptionHandler[*gen.PolicyEvaluationEvent] {
 	return func(event *gen.PolicyEvaluationEvent) error {
 		return s.handle(event)
 	}
@@ -70,7 +75,7 @@ func (s *opensearchIndexer) handle(event *gen.PolicyEvaluationEvent) error {
 
 	logger.Debugf("OpenSearch: Handling policy evaluation event: %s", event.Header.Id)
 
-	jsonDoc, err := json.Marshal(event)
+	jsonDoc, err := utils.ToPbJson(event, "")
 	if err != nil {
 		logger.Errorf("Failed to JSON serialize PDP event: %s", err.Error())
 		return err
@@ -85,7 +90,7 @@ func (s *opensearchIndexer) handle(event *gen.PolicyEvaluationEvent) error {
 	indexReq := opensearchapi.IndexRequest{
 		Index:      shardedName.(string),
 		DocumentID: event.Header.Id,
-		Body:       bytes.NewReader(jsonDoc),
+		Body:       strings.NewReader(jsonDoc),
 	}
 
 	indexRes, err := indexReq.Do(context.Background(), s.client)

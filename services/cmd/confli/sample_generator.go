@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 
-	"github.com/golang/protobuf/jsonpb"
 	config_api "github.com/safedep/gateway/services/gen"
 	"github.com/safedep/gateway/services/pkg/common/logger"
 	"github.com/safedep/gateway/services/pkg/common/utils"
@@ -42,8 +41,7 @@ func (s *sampleConfigGenerator) generate() error {
 // We serialize to JSON first because proto generated classes has JSON
 // key name annotations
 func (s *sampleConfigGenerator) printConfig(gateway *config_api.GatewayConfiguration) {
-	m := jsonpb.Marshaler{Indent: "  "}
-	data, err := m.MarshalToString(gateway)
+	data, err := utils.ToPbJson(gateway, "  ")
 	if err != nil {
 		logger.Errorf("Failed to JSON serialize gateway config: %v", err)
 		return

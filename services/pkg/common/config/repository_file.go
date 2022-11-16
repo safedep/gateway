@@ -5,8 +5,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/golang/protobuf/jsonpb"
 	config_api "github.com/safedep/gateway/services/gen"
+	"github.com/safedep/gateway/services/pkg/common/utils"
 )
 
 type configFileRepository struct {
@@ -59,7 +59,7 @@ func (c *configFileRepository) load() error {
 	defer file.Close()
 
 	var gatewayConfiguration config_api.GatewayConfiguration
-	err = jsonpb.Unmarshal(file, &gatewayConfiguration)
+	err = utils.FromPbJson(file, &gatewayConfiguration)
 	if err != nil {
 		return err
 	}

@@ -72,6 +72,8 @@ services:
       - mysql-server
     build: ./services
     command: dcs-server
+    extra_hosts:
+      opensearch: ${OPENSEARCH_HOST:-opensearch}
     volumes:
       - ${BOOTSTRAP_CONFIG_FILE:-./config/gateway.json}:/config/gateway.json
       - ./pki/dcs/server.crt:/config/pki/server.crt

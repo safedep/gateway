@@ -64,14 +64,14 @@ func (svc *kafkaMessagingService) deliveryEventHandler() {
 	log.Printf("[ERROR] Kafka msg deliver handler QUIT")
 }
 
-func (svc *kafkaMessagingService) QueueSubscribe(topic string, group string, handler func(msg interface{})) (MessagingQueueSubscription, error) {
+func (svc *kafkaMessagingService) QueueSubscribe(topic string, group string, handler MessageSubscriptionHandler) (MessagingQueueSubscription, error) {
 	return nil, errors.New("queue subscription is not supported yet")
 }
 
 func (svc *kafkaMessagingService) Publish(topic string, msg interface{}) error {
 	payload, err := svc.serializer.Serialize(topic, msg)
 	if err != nil {
-		return fmt.Errorf("Failed to serialize payload: %v", err)
+		return fmt.Errorf("failed to serialize payload: %v", err)
 	}
 
 	return svc.producer.Produce(&kafka.Message{

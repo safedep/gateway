@@ -26,7 +26,6 @@ import (
 	envoy_extension_tls_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	envoy_extension_http_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/upstreams/http/v3"
 
-	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -90,9 +89,7 @@ func (g *envoyConfigGenerator) generate() error {
 }
 
 func printEnvoyBootstrapConfig(cfg *envoy_bootstrap_v3.Bootstrap) error {
-	m := jsonpb.Marshaler{Indent: "  "}
-	data, err := m.MarshalToString(cfg)
-
+	data, err := utils.ToPbJson(cfg, "  ")
 	if err != nil {
 		return err
 	}

@@ -3,7 +3,11 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"path/filepath"
+
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
 
 	"github.com/mitchellh/mapstructure"
 )
@@ -37,4 +41,13 @@ func SafelyGetValue[T any](target *T) T {
 
 func IsEmptyString(s string) bool {
 	return s == ""
+}
+
+func ToPbJson[T proto.Message](obj T, indent string) (string, error) {
+	m := jsonpb.Marshaler{Indent: indent, OrigName: true}
+	return m.MarshalToString(obj)
+}
+
+func FromPbJson[T proto.Message](reader io.Reader, obj T) error {
+	return jsonpb.Unmarshal(reader, obj)
 }

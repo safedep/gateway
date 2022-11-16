@@ -7,7 +7,9 @@ import (
 
 	"github.com/nats-io/nats.go"
 
+	nats_proto "github.com/nats-io/nats.go/encoders/protobuf"
 	config_api "github.com/safedep/gateway/services/gen"
+	"github.com/safedep/gateway/services/pkg/common/logger"
 )
 
 type natsMessagingService struct {
@@ -43,7 +45,7 @@ func NewNatsMessagingService(cfg *config_api.MessagingAdapter) (MessagingService
 
 	log.Printf("NATS server connection initialized with RTT=%s", rtt)
 
-	encodedConn, err := nats.NewEncodedConn(conn, nats.JSON_ENCODER)
+	encodedConn, err := nats.NewEncodedConn(conn, nats_proto.PROTOBUF_ENCODER)
 	if err != nil {
 		return &natsMessagingService{}, err
 	}
@@ -52,8 +54,13 @@ func NewNatsMessagingService(cfg *config_api.MessagingAdapter) (MessagingService
 		encodedConnection: encodedConn}, nil
 }
 
-func (svc *natsMessagingService) QueueSubscribe(topic string, group string, handler func(msg interface{})) (MessagingQueueSubscription, error) {
-	return svc.encodedConnection.QueueSubscribe(topic, group, handler)
+func (svc *natsMessagingService) QueueSubscribe(topic string, group string, handler MessageSubscriptionHandler) (MessagingQueueSubscription, error) {
+	return svc.encodedConnection.QueueSubscribe(topic, group, func(m *nats.Msg) {
+		err := handler(m.Data)
+		if err != nil {
+			logger.WithError(err).Errorf("message subscription handler failed")
+		}
+	})
 }
 
 func (svc *natsMessagingService) Publish(topic string, msg interface{}) error {
