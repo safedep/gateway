@@ -6,10 +6,10 @@ Build and run the PDP using:
 
 ```bash
 cd services && make
-GLOBAL_CONFIG_PATH=../config/global.yml PDP_POLICY_PATH=../policies ./out/pdp-server
+GLOBAL_CONFIG_PATH=../config/gateway.json PDP_POLICY_PATH=../policies ./out/pdp-server
 ```
 
-PDP listens on `0.0.0.0:9000`. To use the host instance of PDP, edit `config/envoy.yml` and set the address of the `ExtAuthZ` plugin to your host network address.
+PDP listens on `0.0.0.0:9000`. To use the host instance of PDP, edit `config/envoy.json` and set the address of the `ExtAuthZ` plugin to your host network address.
 
 ## Policy Development
 
@@ -40,10 +40,10 @@ To build and use from host:
 
 ```bash
 cd services && make
-GLOBAL_CONFIG_PATH=../config/global.yml ./out/tap-server
+GLOBAL_CONFIG_PATH=../config/gateway.json ./out/tap-server
 ```
 
-> To use Tap service from host, edit `envoy.yml` and change address of `ext-proc-tap` cluster.
+> To use Tap service from host, edit `envoy.json` and change address of `ext-proc-tap` cluster.
 
 ## Debug NATS Messaging
 
