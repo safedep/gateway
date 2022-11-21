@@ -129,7 +129,15 @@ func (s *opensearchIndexer) initOpenSearchIndex(name string) error {
 	createIndexReq := opensearchapi.IndicesCreateRequest{
 		Index: shardableName,
 		Body: strings.NewReader(`{
-			"settings": {}
+			"settings": {},
+			"mappings": {
+				"properties": {
+					"timestamp": {
+						"type": "date",
+						"format": "epoch_millis"
+					}
+				}
+			}
 		}`),
 	}
 
