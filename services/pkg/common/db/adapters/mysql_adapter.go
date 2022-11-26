@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/safedep/gateway/services/pkg/common/utils"
 	"golang.org/x/net/context"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -29,20 +30,23 @@ func NewMySqlAdapter(config MySqlAdapterConfig) (SqlDataAdapter, error) {
 
 	log.Printf("Connecting to MySQL database with %s@%s:%d", config.Username, config.Host, config.Port)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	retry := 5
-	t := 1
+	var db *gorm.DB
+	var err error
 
-	// Retry connection to avoid race with DB container init
-	for err != nil && t <= retry {
-		log.Printf("[%d/%d] Failed to connect to MySQL server: %v", t, retry, err)
+	retryN := 5
+	utils.InvokeWithRetry(utils.RetryConfig{
+		Count: retryN,
+		Sleep: 1 * time.Second,
+	}, func(n int) error {
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err != nil {
+			log.Printf("[%d/%d] Failed to connect to MySQL server: %v",
+				n, retryN, err)
+		}
 
-		t += 1
-		time.Sleep(1 * time.Second)
-	}
+		return err
+	})
 
-	// Failed after retry
 	if err != nil {
 		return nil, err
 	}
