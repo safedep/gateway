@@ -121,6 +121,16 @@ func (s *opensearchIndexer) buildOpenSearchClient() (*opensearch.Client, error) 
 }
 
 func (s *opensearchIndexer) initOpenSearchIndex(name string) error {
+	return utils.InvokeWithRetry(utils.RetryConfig{
+		Count: 30,
+		Sleep: time.Second * 1,
+	}, func(n int) error {
+		logger.Infof("Attempting to init opensearch index [retry=%d]", n)
+		return s.initOpenSearchIndexInternal(name)
+	})
+}
+
+func (s *opensearchIndexer) initOpenSearchIndexInternal(name string) error {
 	if s.client == nil {
 		return errors.New("client is nil")
 	}
