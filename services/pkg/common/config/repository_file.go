@@ -5,7 +5,9 @@ import (
 	"os"
 	"sync"
 
+	"github.com/fsnotify/fsnotify"
 	config_api "github.com/safedep/gateway/services/gen"
+	"github.com/safedep/gateway/services/pkg/common/logger"
 	"github.com/safedep/gateway/services/pkg/common/utils"
 )
 
@@ -77,5 +79,49 @@ func (c *configFileRepository) load() error {
 }
 
 func (c *configFileRepository) monitorForChange() error {
-	return nil
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return err
+	}
+
+	// We are OK to leak the goroutine as the watcher will
+	// never terminate
+	wcb := func() {
+		for {
+			select {
+			case event, ok := <-watcher.Events:
+				if !ok {
+					logger.Errorf("Failed to read from events channel")
+					return
+				}
+
+				if event.Has(fsnotify.Write) {
+					logger.Debugf("Detected changes in configuration file")
+					err := c.load()
+
+					if err != nil {
+						logger.Errorf("Failed to reload config: %v", err)
+					} else {
+						logger.Debugf("Successfully reloaded gateway config")
+					}
+				}
+
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					logger.Errorf("Failed to read from errors channel")
+					return
+				}
+
+				logger.Errorf("Watcher returned error: %v", err)
+			}
+		}
+	}
+
+	err = watcher.Add(c.path)
+	if err == nil {
+		go wcb()
+	}
+
+	logger.Debugf("Watcher initialized with error: %v", err)
+	return err
 }

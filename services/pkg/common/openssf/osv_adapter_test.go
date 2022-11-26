@@ -1,7 +1,6 @@
 package openssf
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,21 +8,58 @@ import (
 
 // Potential flaky test
 func TestOsvExternalServiceApi(t *testing.T) {
-	svc := NewOsvServiceAdapter(DefaultServiceAdapterConfig())
-	vulns, err := svc.QueryPackage("Maven", "org.apache.logging.log4j:log4j-core", "2.16.0")
+	cases := []struct {
+		name string
 
-	assert.Nil(t, err)
-	assert.True(t, len(*vulns.Vulns) > 0)
+		// Inputs
+		ecosystem, pkgName, pkgVersion string
 
-	var knownVuln *OsvVulnerability = nil
-	for _, v := range *vulns.Vulns {
-		if *v.Id == "GHSA-8489-44mv-ggj8" {
-			knownVuln = &v
-		}
+		// Assertions
+		isEmptyVulns bool
+		knownVulnId  string
+	}{
+		{
+			"Log4j in Maven Ecosystem",
+			"Maven",
+			"org.apache.logging.log4j:log4j-core",
+			"2.16.0",
+
+			false,
+			"GHSA-8489-44mv-ggj8",
+		},
+		{
+			"No such package in Ecosystem",
+			"Maven",
+			"no.such.pkg:no.pkg",
+			"0.0.0",
+
+			true,
+			"",
+		},
 	}
 
-	assert.NotNil(t, knownVuln)
+	svc := NewOsvServiceAdapter(DefaultServiceAdapterConfig())
 
-	assert.True(t, strings.Contains(*knownVuln.Details, "Log4j2"))
-	assert.False(t, strings.Contains(*knownVuln.Details, "Log4j31337"))
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			vulns, err := svc.QueryPackage(test.ecosystem,
+				test.pkgName, test.pkgVersion)
+
+			if test.isEmptyVulns {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+				assert.True(t, len(*vulns.Vulns) > 0)
+
+				var knownVuln *OsvVulnerability = nil
+				for _, v := range *vulns.Vulns {
+					if *v.Id == test.knownVulnId {
+						knownVuln = &v
+					}
+				}
+
+				assert.NotNil(t, knownVuln)
+			}
+		})
+	}
 }

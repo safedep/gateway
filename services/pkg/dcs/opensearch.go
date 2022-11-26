@@ -108,7 +108,7 @@ func (s *opensearchIndexer) buildOpenSearchClient() (*opensearch.Client, error) 
 
 	tlsConfig := tls.Config{}
 	if cfg.GetAuthType() == gen.OpensearchIntegrationConfig_NONE {
-		tlsConfig = tls.Config{InsecureSkipVerify: true}
+		logger.Infof("Using Opensearch without authentication")
 	} else {
 		return nil, fmt.Errorf("unsupported auth type: %s", cfg.GetAuthType().String())
 	}
@@ -147,7 +147,8 @@ func (s *opensearchIndexer) initOpenSearchIndex(name string) error {
 	}
 
 	s.shardedNames.Store(name, shardableName)
-	logger.Debugf("Created OpenSearch index with name: %s status:%s", shardableName,
+	logger.Debugf("Created OpenSearch index with name: %s status:%s",
+		shardableName,
 		createIndexRes.Status())
 	return nil
 }
