@@ -26,7 +26,6 @@ import (
 	envoy_extension_tls_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	envoy_extension_http_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/upstreams/http/v3"
 
-	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -38,6 +37,14 @@ const (
 	tapSvcName  = "ext-proc-tap"
 	tapHostName = "tap"
 	tapPort     = "9001"
+)
+
+var (
+	// We must remove this header to leak gateway
+	// authentication credentials to external repository
+	requestHeadersToRemove = []string{
+		"authorization",
+	}
 )
 
 /**
@@ -82,9 +89,7 @@ func (g *envoyConfigGenerator) generate() error {
 }
 
 func printEnvoyBootstrapConfig(cfg *envoy_bootstrap_v3.Bootstrap) error {
-	m := jsonpb.Marshaler{Indent: "  "}
-	data, err := m.MarshalToString(cfg)
-
+	data, err := utils.ToPbJson(cfg, "  ")
 	if err != nil {
 		return err
 	}
@@ -168,9 +173,10 @@ func envoyGenerateStaticListener(gateway *gen.GatewayConfiguration) (*envoy_list
 	}
 
 	vhosts := &envoy_route_v3.VirtualHost{
-		Name:    "catch_all_vhost",
-		Domains: []string{"*"},
-		Routes:  make([]*envoy_route_v3.Route, 0),
+		Name:                   "catch_all_vhost",
+		Domains:                []string{"*"},
+		Routes:                 make([]*envoy_route_v3.Route, 0),
+		RequestHeadersToRemove: requestHeadersToRemove,
 	}
 
 	for _, upstream := range gateway.Upstreams {
@@ -341,7 +347,6 @@ func envoyGenerateStaticClusters(gateway *gen.GatewayConfiguration) ([]*envoy_cl
 				ClusterName: upstream.Name,
 				Endpoints:   make([]*envoy_endpoint_v3.LocalityLbEndpoints, 0),
 			},
-			TransportSocket: &envoy_core_v3.TransportSocket{},
 		}
 
 		endpoint := &envoy_endpoint_v3.LocalityLbEndpoints{

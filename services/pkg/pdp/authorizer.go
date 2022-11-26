@@ -74,13 +74,13 @@ func (s *authorizationService) checkInternal(ctx context.Context,
 
 	upstreamArtefact, upstream, err := s.resolveRequestedArtefact(httpReq)
 	if err != nil {
-		logger.Infof("No artefact resolved: %s", err.Error())
+		logger.Errorf("No artefact resolved: %s", err.Error())
 		return &envoy_service_auth_v3.CheckResponse{}, err
 	}
 
 	identity, err := s.authenticateForUpstream(exCtx, upstream, httpReq)
 	if err != nil {
-		logger.Infof("Error resolving userId: %v", err)
+		logger.Warnf("Error resolving userId: %v", err)
 		return s.authenticationChallenge(exCtx, upstream, httpReq)
 	}
 
@@ -100,9 +100,9 @@ func (s *authorizationService) checkInternal(ctx context.Context,
 	})
 
 	if enrichmentErr != nil {
-		logger.Infof("Failed to enrich artefact with vulnerability information: %v", enrichmentErr)
+		logger.Errorf("Failed to enrich artefact with vulnerability information: %v", enrichmentErr)
 	} else {
-		logger.Infof("Enriched artefact (%s/%s/%s) with data: %s",
+		logger.Debugf("Enriched artefact (%s/%s/%s) with data: %s",
 			upstreamArtefact.Group, upstreamArtefact.Name, upstreamArtefact.Version,
 			utils.Introspect(pdsResponse))
 	}
@@ -114,21 +114,21 @@ func (s *authorizationService) checkInternal(ctx context.Context,
 		upstreamArtefact.Name, upstreamArtefact.Version,
 		httpReq.Method, httpReq.Path)
 
-	var policyRespose PolicyResponse
+	var policyResponse PolicyResponse
 	obs.Spanned(exCtx, "policyEvaluation", func(ctx context.Context) error {
-		policyRespose, err = s.policyEngine.Evaluate(ctx,
+		policyResponse, err = s.policyEngine.Evaluate(ctx,
 			NewPolicyInput(upstreamArtefact, upstream, identity, pdsResponse))
 		return err
 	})
 
 	if err != nil {
-		logger.Infof("Failed to evaluate policy: %s", err.Error())
+		logger.Errorf("Failed to evaluate policy: %s", err.Error())
 		return &envoy_service_auth_v3.CheckResponse{}, err
 	}
 
-	gatewayDeny := !isMonitorMode() && !policyRespose.Allowed()
+	gatewayDeny := !isMonitorMode() && !policyResponse.Allowed()
 	s.publishDecisionEvent(exCtx, pdsResponse, !gatewayDeny,
-		isMonitorMode(), policyRespose, enrichmentErr)
+		isMonitorMode(), policyResponse, enrichmentErr)
 
 	if gatewayDeny {
 		logger.Infof("Policy denied upstream request")
@@ -256,11 +256,11 @@ func (s *authorizationService) publishDecisionEvent(ctx *extendedContext,
 	event.Data.Result.PackageQueryStatus.Code = grpcStatus.Code().String()
 	event.Data.Result.PackageQueryStatus.Message = grpcStatus.Message()
 
-	logger.With("event", event).Info("Event published")
+	logger.With("event", event).Debug("Event published")
 
 	topic := config.PdpServiceConfig().PublisherConfig.TopicNames.PolicyAudit
 	err := s.messagingService.Publish(topic, event)
 	if err != nil {
-		logger.Infof("[ERROR] Failed to publish audit event to topic: %s err: %v", topic, err)
+		logger.Errorf("Failed to publish audit event to topic: %s err: %v", topic, err)
 	}
 }

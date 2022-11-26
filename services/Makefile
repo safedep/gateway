@@ -58,7 +58,7 @@ protoc-codegen:
 
 
 setup:
-	mkdir -p out
+	mkdir -p out gen
 
 server: oapi-codegen protoc-codegen
 	go build -o out/pdp-server cmd/pdp/pdp.go
@@ -74,6 +74,7 @@ test:
 .PHONY: clean
 clean:
 	-rm -rf out
+	-rm -rf gen
 
 gosec:
 	-docker run --rm -it -w /app/ -v `pwd`:/app/ securego/gosec \

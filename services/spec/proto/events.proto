@@ -25,6 +25,7 @@ message EventContext {
 enum EventType {
   ErrorNoSuchEvent = 0;
   PolicyEvaluationAuditEvent = 1;
+  TapArtefactReqEvent = 2;
 }
 
 // Event header and metadata
@@ -37,6 +38,17 @@ message EventHeader {
 
   // Deprecated
   EventTimestamp created_at = 5; // The timestamp of when this event was created
+}
+
+message TapArtefactRequestEvent {
+  EventHeader header = 1;
+
+  message Data {
+    Artefact artefact = 1;
+  }
+
+  Data data = 2;
+  int64 timestamp = 3;
 }
 
 // Represents an event when PDP completes a Policy Evaluation

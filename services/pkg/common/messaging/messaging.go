@@ -11,8 +11,10 @@ type MessagingQueueSubscription interface {
 	Unsubscribe() error
 }
 
+type MessageSubscriptionHandler func(msg []byte) error
+
 type MessagingService interface {
-	QueueSubscribe(topic string, group string, handler func(msg interface{})) (MessagingQueueSubscription, error)
+	QueueSubscribe(topic string, group string, handler MessageSubscriptionHandler) (MessagingQueueSubscription, error)
 	Publish(topic string, msg interface{}) error
 }
 

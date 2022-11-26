@@ -62,6 +62,10 @@ func With(args map[string]any) *zap.SugaredLogger {
 	return defaultLogger.With(fields...).WithOptions(zap.AddCallerSkip(1)).Sugar()
 }
 
+func WithError(err error) *zap.SugaredLogger {
+	return With(map[string]any{"error": err.Error()})
+}
+
 func WithRequestID(id string) *zap.SugaredLogger {
 	return With(map[string]any{"request-id": id})
 }

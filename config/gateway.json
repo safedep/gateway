@@ -1,6 +1,6 @@
 {
   "info": {
-    "id": "01GFJE3RN787D1NGW4VJEQ07HT",
+    "id": "01GHZD1RHTK6BP62B8VN2G491M",
     "name": "localhost",
     "domain": "localhost"
   },
@@ -11,16 +11,16 @@
   "upstreams": [
     {
       "type": "Maven",
-      "managementType": "GatewayAdmin",
+      "management_type": "GatewayAdmin",
       "name": "maven-central",
       "authentication": {
         "type": "Basic",
         "provider": "default-basic-auth"
       },
       "route": {
-        "pathPrefix": "/maven2",
-        "hostRewriteValue": "repo.maven.apache.org",
-        "pathPrefixRewriteValue": "/maven2"
+        "path_prefix": "/maven2",
+        "host_rewrite_value": "repo.maven.apache.org",
+        "path_prefix_rewrite_value": "/maven2"
       },
       "repository": {
         "host": "repo.maven.apache.org",
@@ -34,16 +34,16 @@
     },
     {
       "type": "Maven",
-      "managementType": "GatewayAdmin",
+      "management_type": "GatewayAdmin",
       "name": "gradle-plugins",
       "authentication": {
         "type": "Basic",
         "provider": "default-basic-auth"
       },
       "route": {
-        "pathPrefix": "/gradle-plugins/m2",
-        "hostRewriteValue": "plugins.gradle.org",
-        "pathPrefixRewriteValue": "/m2"
+        "path_prefix": "/gradle-plugins/m2",
+        "host_rewrite_value": "plugins.gradle.org",
+        "path_prefix_rewrite_value": "/m2"
       },
       "repository": {
         "host": "plugins.gradle.org",
@@ -57,16 +57,16 @@
     },
     {
       "type": "PyPI",
-      "managementType": "GatewayAdmin",
+      "management_type": "GatewayAdmin",
       "name": "pypi_org",
       "authentication": {
         "type": "Basic",
         "provider": "default-basic-auth"
       },
       "route": {
-        "pathPrefix": "/pypi",
-        "hostRewriteValue": "pypi.org",
-        "pathPrefixRewriteValue": "/pypi"
+        "path_prefix": "/pypi",
+        "host_rewrite_value": "pypi.org",
+        "path_prefix_rewrite_value": "/pypi"
       },
       "repository": {
         "host": "pypi.org",
@@ -82,7 +82,7 @@
   "authenticators": {
     "default-basic-auth": {
       "type": "Basic",
-      "basicAuth": {
+      "basic_auth": {
         "path": "/auth/basic-auth-credentials.txt"
       }
     }
@@ -91,10 +91,10 @@
     "kafka": {
       "type": "KAFKA",
       "kafka": {
-        "bootstrapServers": [
+        "bootstrap_servers": [
           "kafka-host:9092"
         ],
-        "schemaRegistryUrl": "http://kafka-host:8081"
+        "schema_registry_url": "http://kafka-host:8081"
       }
     },
     "nats": {
@@ -105,33 +105,41 @@
   },
   "services": {
     "pdp": {
-      "monitorMode": true,
-      "pdsClient": {
+      "monitor_mode": true,
+      "pds_client": {
         "common": {
           "host": "pds",
           "port": 9002,
           "mtls": true
         }
       },
-      "publisherConfig": {
-        "messagingAdapterName": "nats",
-        "topicNames": {
-          "policyAudit": "gateway.pdp.audits"
+      "publisher_config": {
+        "messaging_adapter_name": "nats",
+        "topic_names": {
+          "policy_audit": "gateway.pdp.audits"
         }
       }
     },
     "tap": {
-      "publisherConfig": {
-        "messagingAdapterName": "nats",
-        "topicNames": {
-          "upstreamRequest": "gateway.tap.upstream_req",
-          "upstreamResponse": "gateway.tap.upstream_res"
+      "publisher_config": {
+        "messaging_adapter_name": "nats",
+        "topic_names": {
+          "upstream_request": "gateway.tap.upstream_req",
+          "upstream_response": "gateway.tap.upstream_res"
         }
       }
     },
     "dcs": {
       "active": true,
-      "messagingAdapterName": "nats"
+      "messaging_adapter_name": "nats",
+      "enable_opensearch_adapter": true,
+      "opensearch_config": {
+        "endpoints": [
+          "http://opensearch:9200"
+        ]
+      },
+      "enable_pdp_event_indexing": true,
+      "pdp_event_index_name": "pdp-events"
     }
   }
 }

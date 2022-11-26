@@ -179,6 +179,28 @@ message PdpServiceConfig {
   PublisherConfig publisher_config = 3;
 }
 
+message OpensearchIntegrationConfig {
+  enum AuthType {
+    NONE = 0;
+    BASIC = 1;  // Placeholder. Not currently supported
+  }
+
+  message NoneAuth {}
+
+  message BasicAuth {
+    GatewaySecret username = 1;
+    GatewaySecret password = 2;
+  }
+
+  repeated string endpoints = 1 [(validate.rules).repeated = { unique: true, min_items: 1 }];
+  AuthType auth_type = 2;
+
+  oneof auth {
+    NoneAuth none = 3;
+    BasicAuth basic = 4;
+  }
+}
+
 message DcsServiceConfig {
   enum StorageAdapterType {
     MYSQL = 0;
@@ -192,6 +214,12 @@ message DcsServiceConfig {
   string storage_adapter_config_name = 3; // [(validate.rules).string = {min_len: 3, max_len: 255}]
 
   string messaging_adapter_name = 4 [(validate.rules).string = {min_len: 3, max_len: 255}];
+
+  bool enable_opensearch_adapter = 5;
+  OpensearchIntegrationConfig opensearch_config = 6;
+
+  bool enable_pdp_event_indexing = 7;
+  string pdp_event_index_name = 8;
 }
 
 message GatewayConfiguration {
@@ -202,7 +230,9 @@ message GatewayConfiguration {
 
   GatewayInfo info = 1 [(validate.rules).message.required = true];
   Listener listener = 2 [(validate.rules).message.required = true];
-  repeated GatewayUpstream upstreams = 3;
+
+  repeated GatewayUpstream upstreams = 3 [(validate.rules).repeated = {min_items: 1}];
+
   map<string, GatewayAuthenticator> authenticators = 4;
   map<string, GatewaySecret> secrets = 5;
   map<string, MessagingAdapter> messaging = 6;

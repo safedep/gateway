@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/safedep/gateway/services/gen"
 	event_api "github.com/safedep/gateway/services/gen"
 
 	"github.com/safedep/gateway/services/pkg/common/utils"
@@ -25,20 +26,6 @@ func newMetaEventWithAttributes(t string) MetaEventWithAttributes {
 			Version: EventSchemaVersion,
 		},
 		MetaAttributes: MetaAttributes{},
-	}
-}
-
-func NewArtefactRequestEvent(a Artefact) DomainEvent[Artefact] {
-	return DomainEvent[Artefact]{
-		MetaEventWithAttributes: newMetaEventWithAttributes(EventTypeArtefactRequestSubject),
-		Data:                    a,
-	}
-}
-
-func NewArtefactResponseEvent(a Artefact) DomainEvent[Artefact] {
-	return DomainEvent[Artefact]{
-		MetaEventWithAttributes: newMetaEventWithAttributes(EventTypeArtefactResponseSubject),
-		Data:                    a,
 	}
 }
 
@@ -68,4 +55,20 @@ func NewSpecHeaderWithContext(tp event_api.EventType, source string, ctx *event_
 	eh.Context = ctx
 
 	return eh
+}
+
+func NewArtefactRequestEvent(a Artefact, src string) *gen.TapArtefactRequestEvent {
+	eh := NewSpecHeaderWithContext(event_api.EventType_TapArtefactReqEvent, src, &event_api.EventContext{})
+	return &gen.TapArtefactRequestEvent{
+		Header: eh,
+		Data: &gen.TapArtefactRequestEvent_Data{
+			Artefact: &gen.Artefact{
+				Ecosystem: a.OpenSsfEcosystem(),
+				Group:     a.Group,
+				Name:      a.Name,
+				Version:   a.Version,
+			},
+		},
+		Timestamp: time.Now().UnixMilli(),
+	}
 }
