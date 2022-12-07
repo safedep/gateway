@@ -14,7 +14,7 @@ import (
 )
 
 type PolicyEngine struct {
-	lock       sync.Mutex
+	lock       sync.RWMutex
 	repository string
 	rego       *rego.Rego
 	query      *rego.PreparedEvalQuery
@@ -35,8 +35,8 @@ func NewPolicyEngine(path string, changeMonitor bool) (*PolicyEngine, error) {
 }
 
 func (svc *PolicyEngine) Evaluate(ctx context.Context, input PolicyInput) (PolicyResponse, error) {
-	svc.lock.Lock()
-	defer svc.lock.Unlock()
+	svc.lock.RLock()
+	defer svc.lock.RUnlock()
 
 	rs, err := svc.query.Eval(ctx, rego.EvalInput(input))
 	if err != nil {
