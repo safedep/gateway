@@ -10,7 +10,15 @@ var (
 	errInvalidSleepDuration = errors.New("must have a valid sleep")
 )
 
-type RetriableFunc func(retryN int) error
+type RetryFuncArg struct {
+	// Total retries to be executed
+	Total int
+
+	// Current try count starting with 1
+	Current int
+}
+
+type RetriableFunc func(arg RetryFuncArg) error
 
 type RetryConfig struct {
 	Count int
@@ -29,7 +37,7 @@ func InvokeWithRetry(config RetryConfig, f RetriableFunc) error {
 
 	var err error
 	for i := 0; i < config.Count; i += 1 {
-		err = f(i + 1)
+		err = f(RetryFuncArg{Total: config.Count, Current: (i + 1)})
 		if err == nil {
 			break
 		}
