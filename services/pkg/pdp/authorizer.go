@@ -74,7 +74,7 @@ func (s *authorizationService) checkInternal(ctx context.Context,
 
 	upstreamArtefact, upstream, err := s.resolveRequestedArtefact(httpReq)
 	if err != nil {
-		logger.Errorf("No artefact resolved: %s", err.Error())
+		logger.Warnf("No artefact resolved: %s", err.Error())
 		return &envoy_service_auth_v3.CheckResponse{}, err
 	}
 
