@@ -111,6 +111,12 @@ func Spanned(current context.Context, name string,
 	return err
 }
 
+// API to set the given attributes to various observability context
+// such as Span, log etc.
+func SetAttributeInContext(ctx context.Context, key string, value string) {
+	SetSpanAttribute(ctx, key, value)
+}
+
 func SetSpanAttribute(ctx context.Context, key string, value string) {
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(attribute.KeyValue{

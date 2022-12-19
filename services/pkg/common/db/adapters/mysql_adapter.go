@@ -33,15 +33,14 @@ func NewMySqlAdapter(config MySqlAdapterConfig) (SqlDataAdapter, error) {
 	var db *gorm.DB
 	var err error
 
-	retryN := 5
 	utils.InvokeWithRetry(utils.RetryConfig{
-		Count: retryN,
+		Count: 30,
 		Sleep: 1 * time.Second,
-	}, func(n int) error {
+	}, func(arg utils.RetryFuncArg) error {
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
 			log.Printf("[%d/%d] Failed to connect to MySQL server: %v",
-				n, retryN, err)
+				arg.Current, arg.Total, err)
 		}
 
 		return err

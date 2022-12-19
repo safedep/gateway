@@ -124,8 +124,9 @@ func (s *opensearchIndexer) initOpenSearchIndex(name string) error {
 	return utils.InvokeWithRetry(utils.RetryConfig{
 		Count: 30,
 		Sleep: time.Second * 1,
-	}, func(n int) error {
-		logger.Infof("Attempting to init opensearch index [retry=%d]", n)
+	}, func(arg utils.RetryFuncArg) error {
+		logger.Infof("Attempting to init opensearch index [retry=%d/%d]",
+			arg.Current, arg.Total)
 		return s.initOpenSearchIndexInternal(name)
 	})
 }
